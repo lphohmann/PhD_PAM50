@@ -222,81 +222,81 @@ dev.off()
 #######################################################################
 # plot correlations
 #######################################################################
-
-# all samples
-plot.list <- append(plot.list,list(
-    ggplot(data_mod) + 
-    geom_point(aes(x=meanHer2, y=HER2Diff,color=as.factor(majoritySecondBest)),alpha=0.7, size=5) +
-    xlab("HER2E correlation (mean)") +
-    ylab("Correlation diff (1st-2nd)") +
-    ggtitle("HER2E distinctiveness: Subtype centroid correlations (ERpHER2nHER2E)") +
-    theme(plot.title = element_text(size = 20),
-          axis.text.x = element_text(size = 20),
-          axis.title.x = element_text(size = 25),
-          axis.text.y = element_text(size = 20),
-          axis.title.y = element_text(size = 25),
-          legend.position = c(0.9,0.1),
-          legend.text=element_text(size = 15),
-          legend.title=element_text(size = 20)) +
-    scale_color_manual("2nd Subtype",values=c(LumA = "#2176d5", LumB = "#34c6eb", Basal ="#c41b0e")) +
-    scale_x_continuous(breaks=seq(0, 0.8, 0.1))))
-
-# correlation between subtype and her2 centroid correlations
-# luma
-data_mod <- data %>% filter(majoritySecondBest == "LumA")
-
-plot.list <- append(plot.list,list(
-    ggplot(data_mod) + 
-    geom_point(aes(x=meanHer2, y=meanLumA,color=as.factor(majoritySecondBest)),alpha=0.7, size=5) +
-    xlab("HER2E correlation") +
-    ylab("LumA correlation") +
-    ggtitle("ERpHER2nHER2E: Luminal A and HER2E centroid correlations") +
-    theme(plot.title = element_text(size = 20),
-          axis.text.x = element_text(size = 20),
-          axis.title.x = element_text(size = 25),
-          axis.text.y = element_text(size = 20),
-          axis.title.y = element_text(size = 25),
-          legend.position = "none") +
-    scale_color_manual("Subtype",values=c(LumA = "#2176d5", LumB = "#34c6eb", Basal ="#c41b0e")) +
-    scale_x_continuous(limits = c(0.2, 0.8),breaks=seq(0, 0.8, 0.1)) +
-    scale_y_continuous(limits = c(0,0.6),breaks=seq(0, 0.6, 0.1))))
-
-# lumb
-data_mod <- data %>% filter(majoritySecondBest == "LumB")
-
-plot.list <- append(plot.list,list(
-    ggplot(data_mod) + 
-    geom_point(aes(x=meanHer2, y=meanLumB,color=as.factor(majoritySecondBest)),alpha=0.7, size=5) +
-    xlab("HER2E correlation") +
-    ylab("LumB correlation") +
-    ggtitle("ERpHER2nHER2E: Luminal B and HER2E centroid correlations") +
-    theme(plot.title = element_text(size = 20),
-          axis.text.x = element_text(size = 20),
-          axis.title.x = element_text(size = 25),
-          axis.text.y = element_text(size = 20),
-          axis.title.y = element_text(size = 25),
-          legend.position = "none") +
-    scale_color_manual("Subtype",values=c(LumA = "#2176d5", LumB = "#34c6eb", Basal ="#c41b0e")) +
-    scale_x_continuous(limits = c(0.2, 0.8),breaks=seq(0, 0.8, 0.1)) +
-    scale_y_continuous(limits = c(0,0.6),breaks=seq(0, 0.6, 0.1))))
-
-# basal
-data_mod <- data %>% filter(majoritySecondBest == "Basal")
-
-plot.list <- append(plot.list,list(
-    ggplot(data_mod) + 
-    geom_point(aes(x=meanHer2, y=meanBasal,color=as.factor(majoritySecondBest)),alpha=0.7, size=5) +
-    xlab("HER2E correlation") +
-    ylab("Basal correlation") +
-    ggtitle("ERpHER2nHER2E: Basal and HER2E centroid correlations") +
-    theme(plot.title = element_text(size = 20),
-          axis.text.x = element_text(size = 20),
-          axis.title.x = element_text(size = 25),
-          axis.text.y = element_text(size = 20),
-          axis.title.y = element_text(size = 25),
-          legend.position = "none") +
-    scale_color_manual("Subtype",values=c(LumA = "#2176d5", LumB = "#34c6eb", Basal ="#c41b0e")) +
-    scale_x_continuous(limits = c(0.2, 0.8),breaks=seq(0, 0.8, 0.1)) +
-    scale_y_continuous(limits = c(0,0.6),breaks=seq(0, 0.6, 0.1))))
+# 
+# # all samples
+# plot.list <- append(plot.list,list(
+#     ggplot(data_mod) + 
+#     geom_point(aes(x=meanHer2, y=HER2Diff,color=as.factor(majoritySecondBest)),alpha=0.7, size=5) +
+#     xlab("HER2E correlation (mean)") +
+#     ylab("Correlation diff (1st-2nd)") +
+#     ggtitle("HER2E distinctiveness: Subtype centroid correlations (ERpHER2nHER2E)") +
+#     theme(plot.title = element_text(size = 20),
+#           axis.text.x = element_text(size = 20),
+#           axis.title.x = element_text(size = 25),
+#           axis.text.y = element_text(size = 20),
+#           axis.title.y = element_text(size = 25),
+#           legend.position = c(0.9,0.1),
+#           legend.text=element_text(size = 15),
+#           legend.title=element_text(size = 20)) +
+#     scale_color_manual("2nd Subtype",values=c(LumA = "#2176d5", LumB = "#34c6eb", Basal ="#c41b0e")) +
+#     scale_x_continuous(breaks=seq(0, 0.8, 0.1))))
+# 
+# # correlation between subtype and her2 centroid correlations
+# # luma
+# data_mod <- data %>% filter(majoritySecondBest == "LumA")
+# 
+# plot.list <- append(plot.list,list(
+#     ggplot(data_mod) + 
+#     geom_point(aes(x=meanHer2, y=meanLumA,color=as.factor(majoritySecondBest)),alpha=0.7, size=5) +
+#     xlab("HER2E correlation") +
+#     ylab("LumA correlation") +
+#     ggtitle("ERpHER2nHER2E: Luminal A and HER2E centroid correlations") +
+#     theme(plot.title = element_text(size = 20),
+#           axis.text.x = element_text(size = 20),
+#           axis.title.x = element_text(size = 25),
+#           axis.text.y = element_text(size = 20),
+#           axis.title.y = element_text(size = 25),
+#           legend.position = "none") +
+#     scale_color_manual("Subtype",values=c(LumA = "#2176d5", LumB = "#34c6eb", Basal ="#c41b0e")) +
+#     scale_x_continuous(limits = c(0.2, 0.8),breaks=seq(0, 0.8, 0.1)) +
+#     scale_y_continuous(limits = c(0,0.6),breaks=seq(0, 0.6, 0.1))))
+# 
+# # lumb
+# data_mod <- data %>% filter(majoritySecondBest == "LumB")
+# 
+# plot.list <- append(plot.list,list(
+#     ggplot(data_mod) + 
+#     geom_point(aes(x=meanHer2, y=meanLumB,color=as.factor(majoritySecondBest)),alpha=0.7, size=5) +
+#     xlab("HER2E correlation") +
+#     ylab("LumB correlation") +
+#     ggtitle("ERpHER2nHER2E: Luminal B and HER2E centroid correlations") +
+#     theme(plot.title = element_text(size = 20),
+#           axis.text.x = element_text(size = 20),
+#           axis.title.x = element_text(size = 25),
+#           axis.text.y = element_text(size = 20),
+#           axis.title.y = element_text(size = 25),
+#           legend.position = "none") +
+#     scale_color_manual("Subtype",values=c(LumA = "#2176d5", LumB = "#34c6eb", Basal ="#c41b0e")) +
+#     scale_x_continuous(limits = c(0.2, 0.8),breaks=seq(0, 0.8, 0.1)) +
+#     scale_y_continuous(limits = c(0,0.6),breaks=seq(0, 0.6, 0.1))))
+# 
+# # basal
+# data_mod <- data %>% filter(majoritySecondBest == "Basal")
+# 
+# plot.list <- append(plot.list,list(
+#     ggplot(data_mod) + 
+#     geom_point(aes(x=meanHer2, y=meanBasal,color=as.factor(majoritySecondBest)),alpha=0.7, size=5) +
+#     xlab("HER2E correlation") +
+#     ylab("Basal correlation") +
+#     ggtitle("ERpHER2nHER2E: Basal and HER2E centroid correlations") +
+#     theme(plot.title = element_text(size = 20),
+#           axis.text.x = element_text(size = 20),
+#           axis.title.x = element_text(size = 25),
+#           axis.text.y = element_text(size = 20),
+#           axis.title.y = element_text(size = 25),
+#           legend.position = "none") +
+#     scale_color_manual("Subtype",values=c(LumA = "#2176d5", LumB = "#34c6eb", Basal ="#c41b0e")) +
+#     scale_x_continuous(limits = c(0.2, 0.8),breaks=seq(0, 0.8, 0.1)) +
+#     scale_y_continuous(limits = c(0,0.6),breaks=seq(0, 0.6, 0.1))))
 
 
