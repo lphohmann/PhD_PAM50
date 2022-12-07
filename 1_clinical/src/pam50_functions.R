@@ -16,7 +16,7 @@ loadRData <- function(file.path){
 ################################################################################
 # simple KM plot function
 # function that creates KM plot for specified OM
-KM.plot <- function(data,fit,OM,colors,title,group.variable,legend.labels) {
+KM.plot <- function(data,fit,OM,colors,title,group.variable) { #,legend.labels
   
   plot <- ggsurvplot(
     fit,
@@ -32,8 +32,9 @@ KM.plot <- function(data,fit,OM,colors,title,group.variable,legend.labels) {
     xlab = paste(OM," (years)", sep = ""),
     ylab = paste(OM," event probability", sep = ""), 
     ylim = c(0,1),
+    color = "strata",
     palette = colors, 
-    legend = c(0.9,0.96),
+    legend = c(0.8,0.1),
     ggtheme = theme(legend.title = element_text(size=25), #20
                     legend.key.size = unit(0.5,"cm"), 
                     legend.text = element_text(size = 25), #20
@@ -44,9 +45,10 @@ KM.plot <- function(data,fit,OM,colors,title,group.variable,legend.labels) {
                     plot.title = element_text(size=30)),
     title = title,
     legend.title = "majoritySecondBestClass",
-    legend.labs = c(paste(legend.labels[1]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[1],")",sep = ""),
-                    paste(legend.labels[2]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[2],")",sep = ""),
-                    paste(legend.labels[3]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[3],")",sep = "")),
+    # HERE HOW TO HANDLE DIFFERENT NUMBERS OF LABELS
+    # legend.labs = c(paste(legend.labels[1]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[1],")",sep = ""),
+    #                 paste(legend.labels[2]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[2],")",sep = ""),
+    #                 paste(legend.labels[3]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[3],")",sep = "")),
     break.x.by = 1, # break X axis in time intervals of x (what is nicest here? maybe 365)
     break.y.by = 0.1)
   

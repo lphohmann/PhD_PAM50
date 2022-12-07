@@ -42,13 +42,7 @@ anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4
 
 pam50.subtypes <- unique(anno$NCN_PAM50)
 outcome.measures <- c("OS","DRFI")
-
-#test
-pam50.type <- "LumA"
-data <- anno[which(anno$NCN_PAM50 == pam50.type),]
-OM <- "OS"
-source("scripts/1_clinical/src/pam50_functions.R")
-
+colors <- c(LumA = "#2176d5", LumB = "#34c6eb", Her2 ="#d334eb", Basal ="#c41b0e", Normal = "#64c25d")
 
 # create KM plots comparing OS and DFRI per subtype per second best matching subtype
 for (j in 1:length(pam50.subtypes)) {
@@ -66,17 +60,16 @@ for (j in 1:length(pam50.subtypes)) {
     # plot
     plot.list <- append(plot.list,list(
       KM.plot(pam50.data,fit,OM,
-                   colors = c("#d334eb", "#2176d5", "#34c6eb"),
+                   colors = unname(colors[names(table(pam50.data$majoritySecondBestClass))]),
                    title = paste(OM, " in NCN_PAM50: ", pam50.type, sep=""),
                    group.variable = "majoritySecondBestClass",
-                   legend.labels = c("HER2E","LUMB","NORMAL"))))
-    
+                   legend.labels = names(table(pam50.data$majoritySecondBestClass))))) 
   }
-  
+  #colors[grepl(paste(names(table(pam50.data$majoritySecondBestClass)), collapse = '|'),names(colors))],
 }
 
 
-    
+    #c("#d334eb", "#2176d5", "#34c6eb")
     plot <- ggsurvplot(
         fit,
         censor.size = 8,
