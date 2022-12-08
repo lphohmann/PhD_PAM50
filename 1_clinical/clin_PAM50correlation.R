@@ -75,6 +75,7 @@ for (i in 1:nrow(clinical.groups)) {
     pam50.data <- sg.data[which(sg.data$NCN_PAM50 == pam50.type),]
     pam50.data.mod <- melt(pam50.data, measure.vars=colnames(pam50.data[grepl("mean",colnames(pam50.data))])) # only work if other columns dont caintain "mean" substring
     count.df <- count(pam50.data.mod,variable)
+    #print(paste(clin.group,";",pam50.type,";",min(pam50.data.mod$value),sep=" "))
     # plot
     pc.list <- append(pc.list,list(
       ggplot(pam50.data.mod) + 
@@ -82,21 +83,21 @@ for (i in 1:nrow(clinical.groups)) {
         xlab("PAM50 Centroid") +
         ylab("Correlation") +
         ggtitle(paste(
-          "PAM50 centroid correlation - clin: ",clin.group,"; pam50: ",pam50.type,sep="")) +
+          "PAM50 centroid correlation - clin: ",clin.group,"; pam50: ",pam50.type," ","(n=",unname(table(pam50.data$NCN_PAM50)[1]),")",sep="")) +
+        scale_y_continuous(breaks = seq(-1, 1, 0.2)) +
         theme(plot.title = element_text(size = 25),
               axis.text.x = element_text(size = 20),
               axis.title.x = element_text(size = 25),
               axis.text.y = element_text(size = 20),
               axis.title.y = element_text(size = 25),
-              legend.position = "none") + #max(pam50.data.mod)
-        geom_text(data = count.df, aes(x=variable, y = min(pam50.data.mod$value), label = paste("n=",n,sep="")),vjust=1.8,size=6) +
+              legend.position = "none") + 
         scale_fill_manual(values=group.colors <- c(meanLumA = "#2176d5", meanLumB = "#34c6eb", meanHer2 ="#d334eb", meanBasal ="#c41b0e", meanNormal="#64c25d"))))
   }
 }
 
 #plot
-pdf(file = paste(output.path,"PAM50_pc.pdf", sep=""), 
-    onefile = TRUE, width = 21.0, height = 14.8) 
+pdf(file = paste(output.path,"PAM50_pc.pdf", sep=""),
+    onefile = TRUE, width = 21.0, height = 14.8)
 
 for (i in 1:length(pc.list)) {
   print(pc.list[[i]])
@@ -153,8 +154,8 @@ for (i in 1:nrow(clinical.groups)) {
 }
 
 #plot
-pdf(file = paste(output.path,"PAM50_ct.pdf", sep=""), 
-    onefile = TRUE, width = 21.0, height = 14.8) 
+pdf(file = paste(output.path,"PAM50_ct.pdf", sep=""),
+    onefile = TRUE, width = 21.0, height = 14.8)
 
 for (i in 1:length(ct.list)) {
   print(ct.list[[i]])
@@ -197,6 +198,7 @@ for (i in 1:nrow(clinical.groups)) {
     xlab("PAM50 Class") +
     ylab("Correlation diff (1st-2nd)") +
     ggtitle(paste("PAM50 class distinctiveness - clin: ",clin.group,sep="")) +
+    scale_y_continuous(breaks = seq(0, 1, 0.2)) +
     theme(plot.title = element_text(size = 25),
           axis.text.x = element_text(size = 20),
           axis.title.x = element_text(size = 25),
@@ -208,8 +210,8 @@ for (i in 1:nrow(clinical.groups)) {
 }
 
 #plot
-pdf(file = paste(output.path,"PAM50_d.pdf", sep=""), 
-    onefile = TRUE, width = 21.0, height = 14.8) 
+pdf(file = paste(output.path,"PAM50_d.pdf", sep=""),
+    onefile = TRUE, width = 21.0, height = 14.8)
 
 for (i in 1:length(d.list)) {
   print(d.list[[i]])
@@ -256,6 +258,7 @@ for (i in 1:nrow(clinical.groups)) {
         xlab("majoritySecondBestClass") +
         ylab("Correlation diff (1st-2nd)") +
         ggtitle(paste("PAM50 class-specific distinctiveness - clin: ",clin.group,"; pam50: ",pam50.type,sep="")) +
+        scale_y_continuous(breaks = seq(0, 1, 0.2)) +
         theme(plot.title = element_text(size = 25),
               axis.text.x = element_text(size = 20),
               axis.title.x = element_text(size = 25),
@@ -268,8 +271,8 @@ for (i in 1:nrow(clinical.groups)) {
 }
 
 #plot
-pdf(file = paste(output.path,"PAM50_csd.pdf", sep=""), 
-    onefile = TRUE, width = 21.0, height = 14.8) 
+pdf(file = paste(output.path,"PAM50_csd.pdf", sep=""),
+    onefile = TRUE, width = 21.0, height = 14.8)
 
 for (i in 1:length(csd.list)) {
   print(csd.list[[i]])
@@ -319,8 +322,8 @@ for (j in 1:length(pam50.subtypes)) {
 }
 
 #plot
-pdf(file = paste(output.path,"PAM50_sa.pdf", sep=""), 
-    onefile = TRUE, width = 21.0, height = 14.8) 
+pdf(file = paste(output.path,"PAM50_sa.pdf", sep=""),
+    onefile = TRUE, width = 21.0, height = 14.8)
 
 for (i in 1:length(sa.list)) {
   print(sa.list[[i]])
@@ -328,17 +331,19 @@ for (i in 1:length(sa.list)) {
 
 dev.off()
 
-# #plot
+#plot # format gets messed up like this, dont know why
 # pdf(file = paste(output.path,"PAM50_analyses.pdf", sep=""), 
-#     onefile = TRUE, width = 21.0, height = 14.8) 
+#    onefile = TRUE, width = 21.0, height = 14.8) 
 # 
-# #try1
-# plot.list <- c(sa.list,csd.list,d.list,ct.list,pc.list)
-# 
+# plot.list <- list(sa.list,csd.list,d.list,ct.list,pc.list)
+#  
 # for (i in 1:length(plot.list)) {
-#   print(plot.list[[i]])
+#   list <- plot.list[[i]]
+#   for (j in 1:length(list)) {
+#     print(list[[j]]) 
+#   }
 # }
-# 
+#  
 # dev.off()
 
 
