@@ -31,7 +31,6 @@ library(survival)
 library(survminer)
 library(grid)
 
-
 # list to store plots
 plot.list <- list()
 
@@ -215,7 +214,7 @@ for (i in 1:nrow(clinical.groups)) {
 #######################################################################
 # SA for second best pam50 class
 #######################################################################
-plot.list <- list()
+
 # load data
 anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData") %>% 
   filter(EvalGroup_ERpHER2nLNn50 == "ERpHER2nLNn_Endo_50") %>% 
@@ -233,27 +232,25 @@ for (j in 1:length(pam50.subtypes)) {
   # do SA based on majoritySecondBestClass
   for (k in 1:length(outcome.measures)) {
     OM <- outcome.measures[k]
-    print(paste(pam50.type," - ",OM,sep=""))
     OM.bin <- paste(OM, "bin",sep="")    
     # surv object
     data.surv <- Surv(pam50.data[[OM]], pam50.data[[OM.bin]]) 
     # fit
     fit <- survminer::surv_fit(data.surv~majoritySecondBestClass, data=pam50.data, conf.type="log-log")
     # plot
-    print(table(pam50.data$majoritySecondBestClass))
-    print(names(table(pam50.data$majoritySecondBestClass)))
     plot.list <- append(plot.list,list(
       KM.plot(pam50.data,fit,OM,
               colors = unname(colors[names(table(pam50.data$majoritySecondBestClass))]),
-              title = paste(OM, " in NCN_PAM50: ", pam50.type, sep=""),
-              group.variable = "majoritySecondBestClass"
-              ))) #,legend.labels = names(table(pam50.data$majoritySecondBestClass))
+              title = paste(OM, " in ERpHER2nLNn_Endo_50; NCN_PAM50: ", pam50.type, sep=""),
+              group.variable = "majoritySecondBestClass",
+              legend.labels = names(table(pam50.data$majoritySecondBestClass))
+              ))) 
   }
   #colors[grepl(paste(names(table(pam50.data$majoritySecondBestClass)), collapse = '|'),names(colors))],
 }
 
 #plot
-pdf(file = paste(output.path,"PAM50_SA.pdf", sep=""), 
+pdf(file = paste(output.path,"PAM50_analyses.pdf", sep=""), 
     onefile = TRUE, width = 21.0, height = 14.8) 
 
 for (i in 1:length(plot.list)) {
@@ -261,6 +258,32 @@ for (i in 1:length(plot.list)) {
 }
 
 dev.off()
+
+
+#######################################################################
+# SA for disctinctiveness in LumA and LumB
+#######################################################################
+
+# see what is worth creating a function for
+
+# distinctiveness based on median distinctiveness in these subgroups (e.g. LumA-Normal -> split based on median)
+
+# LumA
+
+# KM plot: LumA-Normal (distinct); LumA-Normal (non-distinct); LumA-LumB (distinct); LumA-LumB (non-distinct)
+
+# Boxplots: Age; Tum Size (with these groups)
+
+# LumB
+
+# KM plot: LumB-Normal (distinct); LumB-Normal (non-distinct); LumB-LumA (distinct); LumB-LumA (non-distinct)
+
+# Boxplots: Age; Tum Size (with these groups)
+
+
+
+
+
 
 #######################################################################
 # plot correlations
