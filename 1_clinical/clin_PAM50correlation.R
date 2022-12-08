@@ -31,9 +31,6 @@ library(survival)
 library(survminer)
 library(grid)
 
-# list to store plots
-plot.list <- list()
-
 #######################################################################
 # Load data
 #######################################################################
@@ -53,8 +50,14 @@ clinical.groups <- setNames(as.data.frame(rbind(
   c("ER","HER2"))
 
 #######################################################################
-# PAM50 centroid correlation
+# PAM50 centroid correlation - NOT CHECK!!!!!!
 #######################################################################
+
+# list to store plots
+pc.list <- list()
+
+# load data
+anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData")
 
 for (i in 1:nrow(clinical.groups)) { 
   # select subgroup data
@@ -70,9 +73,10 @@ for (i in 1:nrow(clinical.groups)) {
     # select data 
     pam50.type <- pam50.subtypes[j]
     pam50.data <- sg.data[which(sg.data$NCN_PAM50 == pam50.type),]
-    # do
     pam50.data.mod <- melt(pam50.data, measure.vars=colnames(pam50.data[grepl("mean",colnames(pam50.data))])) # only work if other columns dont caintain "mean" substring
-    plot.list <- append(plot.list,list(
+    count.df <- count(pam50.data.mod,variable)
+    # plot
+    pc.list <- append(pc.list,list(
       ggplot(pam50.data.mod) + 
         geom_boxplot(aes(x=variable, y=value,fill=as.factor(variable)),alpha=0.7, size=1.5, outlier.size = 5) +
         xlab("PAM50 Centroid") +
@@ -84,14 +88,31 @@ for (i in 1:nrow(clinical.groups)) {
               axis.title.x = element_text(size = 25),
               axis.text.y = element_text(size = 20),
               axis.title.y = element_text(size = 25),
-              legend.position = "none") +
+              legend.position = "none") + #max(pam50.data.mod)
+        geom_text(data = count.df, aes(x=variable, y = min(pam50.data.mod$value), label = paste("n=",n,sep="")),vjust=1.8,size=6) +
         scale_fill_manual(values=group.colors <- c(meanLumA = "#2176d5", meanLumB = "#34c6eb", meanHer2 ="#d334eb", meanBasal ="#c41b0e", meanNormal="#64c25d"))))
   }
 }
 
+#plot
+pdf(file = paste(output.path,"PAM50_pc.pdf", sep=""), 
+    onefile = TRUE, width = 21.0, height = 14.8) 
+
+for (i in 1:length(pc.list)) {
+  print(pc.list[[i]])
+}
+
+dev.off()
+
 #######################################################################
-# Crosstable with 2nd best PAM50 match for all samples
+# Crosstable with 2nd best PAM50 match for all samples - CHECK
 #######################################################################
+
+# list to store plots
+ct.list <- list()
+
+# load data
+anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData")
 
 for (i in 1:nrow(clinical.groups)) { 
   # select subgroup data
@@ -110,7 +131,7 @@ for (i in 1:nrow(clinical.groups)) {
     sg.data$majorityNearestClass,sg.data$majoritySecondBestClass,dnn=c("majorityNearestClass","majoritySecondBestClass")))
   
   # plot
-  plot.list <- append(plot.list,list(
+  ct.list <- append(ct.list,list(
     ggplot(data = confusion_matrix,
            mapping = aes(x = majorityNearestClass,
                          y = majoritySecondBestClass)) +
@@ -131,20 +152,35 @@ for (i in 1:nrow(clinical.groups)) {
             legend.position = "none")))
 }
 
+#plot
+pdf(file = paste(output.path,"PAM50_ct.pdf", sep=""), 
+    onefile = TRUE, width = 21.0, height = 14.8) 
+
+for (i in 1:length(ct.list)) {
+  print(ct.list[[i]])
+}
+
+dev.off()
 
 #######################################################################
 # Distinctiveness: Boxplot the difference between the best and second 
-# best correlation matches
+# best correlation matches - CHECK
 #######################################################################
+
+# list to store plots
+d.list <- list()
+
+# load data
+anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData")
+# filter out samples where best=2nd best and calc diff.
+anno <- anno[which(
+  anno$majorityNearestClass!=anno$majoritySecondBestClass),] %>% 
+  rowwise() %>% mutate(Diff = abs(get(paste("mean",majorityNearestClass,sep="")) - get(paste("mean",majoritySecondBestClass,sep=""))))
 
 for (i in 1:nrow(clinical.groups)) { 
   # select subgroup data
   clin.group <- row.names(clinical.groups)[i] 
-  # filter out samples where best=2nd best and calc diff.
-  anno <- anno[which(
-    anno$majorityNearestClass!=anno$majoritySecondBestClass),] %>% 
-    rowwise() %>% mutate(Diff = abs(get(paste("mean",majorityNearestClass,sep=""))) - abs(get(paste("mean",majoritySecondBestClass,sep=""))))
-  
+
   if (clin.group == "All") {
     sg.data <- anno
   } else {
@@ -152,9 +188,10 @@ for (i in 1:nrow(clinical.groups)) {
       anno$HER2 == clinical.groups[clin.group ,"HER2"] & 
         anno$ER == clinical.groups[clin.group ,"ER"]),]
   }
+  count.df <- count(sg.data,majorityNearestClass)
   
   # plot
-  plot.list <- append(plot.list,list(
+  d.list <- append(d.list,list(
     ggplot(sg.data) + 
     geom_boxplot(aes(x=majorityNearestClass, y=Diff,fill=as.factor(majorityNearestClass)),alpha=0.7, size=1.5, outlier.size = 5) +
     xlab("PAM50 Class") +
@@ -166,20 +203,37 @@ for (i in 1:nrow(clinical.groups)) {
           axis.text.y = element_text(size = 20),
           axis.title.y = element_text(size = 25),
           legend.position = "none") +
+      geom_text(data = count.df, aes(x=majorityNearestClass, y = min(sg.data$Diff), label = paste("n=",n,sep="")),vjust=1.8,size=6) +
     scale_fill_manual(values= c(LumA = "#2176d5", LumB = "#34c6eb", Her2 ="#d334eb", Basal ="#c41b0e", Normal="#64c25d"))))
 }
 
+#plot
+pdf(file = paste(output.path,"PAM50_d.pdf", sep=""), 
+    onefile = TRUE, width = 21.0, height = 14.8) 
+
+for (i in 1:length(d.list)) {
+  print(d.list[[i]])
+}
+
+dev.off()
+
 #######################################################################
-# PAM50 Class specific distinctiveness: difference between the best and second best correlation matches
+# PAM50 Class specific distinctiveness: difference between the best and second best correlation matches - CHECK
 #######################################################################
+
+# plot list 
+csd.list <- list()
+
+# load data
+anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData")
+# filter out samples where best=2nd best and calc diff.
+anno <- anno[which(
+  anno$majorityNearestClass!=anno$majoritySecondBestClass),] %>% 
+  rowwise() %>% mutate(Diff = abs(get(paste("mean",majorityNearestClass,sep="")) - get(paste("mean",majoritySecondBestClass,sep=""))))
 
 for (i in 1:nrow(clinical.groups)) { 
   # select subgroup data
   clin.group <- row.names(clinical.groups)[i] 
-  # filter out samples where best=2nd best and calc diff.
-  anno <- anno[which(
-    anno$majorityNearestClass!=anno$majoritySecondBestClass),] %>% 
-    rowwise() %>% mutate(Diff = abs(get(paste("mean",majorityNearestClass,sep=""))) - abs(get(paste("mean",majoritySecondBestClass,sep=""))))
   
   if (clin.group == "All") {
     sg.data <- anno
@@ -193,9 +247,10 @@ for (i in 1:nrow(clinical.groups)) {
     # select data 
     pam50.type <- pam50.subtypes[j]
     pam50.data <- sg.data[which(sg.data$NCN_PAM50 == pam50.type),]
+    count.df <- count(pam50.data,majoritySecondBestClass)
     
     # plot
-    plot.list <- append(plot.list,list(
+    csd.list <- append(csd.list,list(
       ggplot(pam50.data) + 
         geom_boxplot(aes(x=majoritySecondBestClass, y=Diff,fill=as.factor(majoritySecondBestClass)),alpha=0.7, size=1.5, outlier.size = 5) +
         xlab("majoritySecondBestClass") +
@@ -207,13 +262,27 @@ for (i in 1:nrow(clinical.groups)) {
               axis.text.y = element_text(size = 20),
               axis.title.y = element_text(size = 25),
               legend.position = "none") +
+        geom_text(data = count.df, aes(x=majoritySecondBestClass, y = min(pam50.data$Diff), label = paste("n=",n,sep="")),vjust=1.8,size=6) + #
         scale_fill_manual(values= c(LumA = "#2176d5", LumB = "#34c6eb", Her2 ="#d334eb", Basal ="#c41b0e", Normal="#64c25d"))))
   }
 }
 
+#plot
+pdf(file = paste(output.path,"PAM50_csd.pdf", sep=""), 
+    onefile = TRUE, width = 21.0, height = 14.8) 
+
+for (i in 1:length(csd.list)) {
+  print(csd.list[[i]])
+}
+
+dev.off()
+
 #######################################################################
-# SA for second best pam50 class
+# SA for second best pam50 class - CHECK  
 #######################################################################
+
+# plot list 
+sa.list <- list()
 
 # load data
 anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData") %>% 
@@ -238,7 +307,7 @@ for (j in 1:length(pam50.subtypes)) {
     # fit
     fit <- survminer::surv_fit(data.surv~majoritySecondBestClass, data=pam50.data, conf.type="log-log")
     # plot
-    plot.list <- append(plot.list,list(
+    sa.list <- append(sa.list,list(
       KM.plot(pam50.data,fit,OM,
               colors = unname(colors[names(table(pam50.data$majoritySecondBestClass))]),
               title = paste(OM, " in ERpHER2nLNn_Endo_50; NCN_PAM50: ", pam50.type, sep=""),
@@ -250,14 +319,27 @@ for (j in 1:length(pam50.subtypes)) {
 }
 
 #plot
-pdf(file = paste(output.path,"PAM50_analyses.pdf", sep=""), 
+pdf(file = paste(output.path,"PAM50_sa.pdf", sep=""), 
     onefile = TRUE, width = 21.0, height = 14.8) 
 
-for (i in 1:length(plot.list)) {
-  print(plot.list[[i]])
+for (i in 1:length(sa.list)) {
+  print(sa.list[[i]])
 }
 
 dev.off()
+
+# #plot
+# pdf(file = paste(output.path,"PAM50_analyses.pdf", sep=""), 
+#     onefile = TRUE, width = 21.0, height = 14.8) 
+# 
+# #try1
+# plot.list <- c(sa.list,csd.list,d.list,ct.list,pc.list)
+# 
+# for (i in 1:length(plot.list)) {
+#   print(plot.list[[i]])
+# }
+# 
+# dev.off()
 
 
 #######################################################################
