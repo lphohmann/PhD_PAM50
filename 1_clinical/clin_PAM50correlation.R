@@ -74,8 +74,7 @@ for (i in 1:nrow(clinical.groups)) {
     pam50.type <- pam50.subtypes[j]
     pam50.data <- sg.data[which(sg.data$NCN_PAM50 == pam50.type),]
     pam50.data.mod <- melt(pam50.data, measure.vars=colnames(pam50.data[grepl("mean",colnames(pam50.data))])) # only work if other columns dont caintain "mean" substring
-    count.df <- count(pam50.data.mod,variable)
-    #print(paste(clin.group,";",pam50.type,";",min(pam50.data.mod$value),sep=" "))
+    count.df <- count(pam50.data.mod,variable) %>% mutate(y_pos = min(pam50.data.mod$value))
     # plot
     pc.list <- append(pc.list,list(
       ggplot(pam50.data.mod) + 
@@ -84,6 +83,7 @@ for (i in 1:nrow(clinical.groups)) {
         ylab("Correlation") +
         ggtitle(paste(
           "PAM50 centroid correlation - clin: ",clin.group,"; pam50: ",pam50.type," ","(n=",unname(table(pam50.data$NCN_PAM50)[1]),")",sep="")) +
+        geom_text(data = count.df, aes(x=variable, y = y_pos, label = paste("n=",n,sep="")),vjust=1.8,size=8) + 
         scale_y_continuous(breaks = seq(-1, 1, 0.2)) +
         theme(plot.title = element_text(size = 25),
               axis.text.x = element_text(size = 20),
@@ -189,7 +189,8 @@ for (i in 1:nrow(clinical.groups)) {
       anno$HER2 == clinical.groups[clin.group ,"HER2"] & 
         anno$ER == clinical.groups[clin.group ,"ER"]),]
   }
-  count.df <- count(sg.data,majorityNearestClass)
+  count.df <- count(sg.data,majorityNearestClass) %>% 
+    mutate(y_pos = min(sg.data$Diff))
   
   # plot
   d.list <- append(d.list,list(
@@ -205,7 +206,7 @@ for (i in 1:nrow(clinical.groups)) {
           axis.text.y = element_text(size = 20),
           axis.title.y = element_text(size = 25),
           legend.position = "none") +
-      geom_text(data = count.df, aes(x=majorityNearestClass, y = min(sg.data$Diff), label = paste("n=",n,sep="")),vjust=1.8,size=6) +
+      geom_text(data = count.df, aes(x=majorityNearestClass, y = y_pos, label = paste("n=",n,sep="")),vjust=1.8,size=8) +
     scale_fill_manual(values= c(LumA = "#2176d5", LumB = "#34c6eb", Her2 ="#d334eb", Basal ="#c41b0e", Normal="#64c25d"))))
 }
 
@@ -249,7 +250,8 @@ for (i in 1:nrow(clinical.groups)) {
     # select data 
     pam50.type <- pam50.subtypes[j]
     pam50.data <- sg.data[which(sg.data$NCN_PAM50 == pam50.type),]
-    count.df <- count(pam50.data,majoritySecondBestClass)
+    count.df <- count(pam50.data,majoritySecondBestClass) %>% 
+      mutate(y_pos = min(pam50.data$Diff))
     
     # plot
     csd.list <- append(csd.list,list(
@@ -265,7 +267,7 @@ for (i in 1:nrow(clinical.groups)) {
               axis.text.y = element_text(size = 20),
               axis.title.y = element_text(size = 25),
               legend.position = "none") +
-        geom_text(data = count.df, aes(x=majoritySecondBestClass, y = min(pam50.data$Diff), label = paste("n=",n,sep="")),vjust=1.8,size=6) + #
+        geom_text(data = count.df, aes(x=majoritySecondBestClass, y = y_pos, label = paste("n=",n,sep="")),vjust=1.8,size=8) + #
         scale_fill_manual(values= c(LumA = "#2176d5", LumB = "#34c6eb", Her2 ="#d334eb", Basal ="#c41b0e", Normal="#64c25d"))))
   }
 }
