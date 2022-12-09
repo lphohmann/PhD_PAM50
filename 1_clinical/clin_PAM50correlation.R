@@ -31,14 +31,14 @@ library(survival)
 library(survminer)
 library(grid)
 
+# plot list
+plot.list <- list()
+
 #######################################################################
-# Load data
+# Define groups
 #######################################################################
 
-# load data
-anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData")
-
-pam50.subtypes <- unique(anno$NCN_PAM50)
+pam50.subtypes <- unique(loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData")$NCN_PAM50)
 
 clinical.groups <- setNames(as.data.frame(rbind(
   All = c(NA,NA), 
@@ -52,9 +52,6 @@ clinical.groups <- setNames(as.data.frame(rbind(
 #######################################################################
 # PAM50 centroid correlation - NOT CHECK!!!!!!
 #######################################################################
-
-# list to store plots
-pc.list <- list()
 
 # load data
 anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData")
@@ -76,7 +73,7 @@ for (i in 1:nrow(clinical.groups)) {
     pam50.data.mod <- melt(pam50.data, measure.vars=colnames(pam50.data[grepl("mean",colnames(pam50.data))])) # only work if other columns dont caintain "mean" substring
     count.df <- count(pam50.data.mod,variable) %>% mutate(y_pos = min(pam50.data.mod$value))
     # plot
-    pc.list <- append(pc.list,list(
+    plot.list <- append(plot.list,list(
       ggplot(pam50.data.mod) + 
         geom_boxplot(aes(x=variable, y=value,fill=as.factor(variable)),alpha=0.7, size=1.5, outlier.size = 5) +
         xlab("PAM50 Centroid") +
@@ -95,22 +92,9 @@ for (i in 1:nrow(clinical.groups)) {
   }
 }
 
-#plot
-pdf(file = paste(output.path,"PAM50_pc.pdf", sep=""),
-    onefile = TRUE, width = 21.0, height = 14.8)
-
-for (i in 1:length(pc.list)) {
-  print(pc.list[[i]])
-}
-
-dev.off()
-
 #######################################################################
 # Crosstable with 2nd best PAM50 match for all samples - CHECK
 #######################################################################
-
-# list to store plots
-ct.list <- list()
 
 # load data
 anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData")
@@ -132,7 +116,7 @@ for (i in 1:nrow(clinical.groups)) {
     sg.data$majorityNearestClass,sg.data$majoritySecondBestClass,dnn=c("majorityNearestClass","majoritySecondBestClass")))
   
   # plot
-  ct.list <- append(ct.list,list(
+  plot.list <- append(plot.list,list(
     ggplot(data = confusion_matrix,
            mapping = aes(x = majorityNearestClass,
                          y = majoritySecondBestClass)) +
@@ -153,30 +137,21 @@ for (i in 1:nrow(clinical.groups)) {
             legend.position = "none")))
 }
 
-#plot
-pdf(file = paste(output.path,"PAM50_ct.pdf", sep=""),
-    onefile = TRUE, width = 21.0, height = 14.8)
-
-for (i in 1:length(ct.list)) {
-  print(ct.list[[i]])
-}
-
-dev.off()
-
 #######################################################################
 # Distinctiveness: Boxplot the difference between the best and second 
 # best correlation matches - CHECK
 #######################################################################
 
-# list to store plots
-d.list <- list()
-
 # load data
 anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData")
+
 # filter out samples where best=2nd best and calc diff.
 anno <- anno[which(
   anno$majorityNearestClass!=anno$majoritySecondBestClass),] %>% 
-  rowwise() %>% mutate(Diff = abs(get(paste("mean",majorityNearestClass,sep="")) - get(paste("mean",majoritySecondBestClass,sep=""))))
+  rowwise() %>% 
+  mutate(Diff = abs(
+    abs(get(paste("mean",majorityNearestClass,sep=""))) - abs(get(paste("mean",majoritySecondBestClass,sep="")))
+    ))
 
 for (i in 1:nrow(clinical.groups)) { 
   # select subgroup data
@@ -193,7 +168,7 @@ for (i in 1:nrow(clinical.groups)) {
     mutate(y_pos = min(sg.data$Diff))
   
   # plot
-  d.list <- append(d.list,list(
+  plot.list <- append(plot.list,list(
     ggplot(sg.data) + 
     geom_boxplot(aes(x=majorityNearestClass, y=Diff,fill=as.factor(majorityNearestClass)),alpha=0.7, size=1.5, outlier.size = 5) +
     xlab("PAM50 Class") +
@@ -210,16 +185,6 @@ for (i in 1:nrow(clinical.groups)) {
     scale_fill_manual(values= c(LumA = "#2176d5", LumB = "#34c6eb", Her2 ="#d334eb", Basal ="#c41b0e", Normal="#64c25d"))))
 }
 
-#plot
-pdf(file = paste(output.path,"PAM50_d.pdf", sep=""),
-    onefile = TRUE, width = 21.0, height = 14.8)
-
-for (i in 1:length(d.list)) {
-  print(d.list[[i]])
-}
-
-dev.off()
-
 #######################################################################
 # PAM50 Class specific distinctiveness: difference between the best and second best correlation matches - CHECK
 #######################################################################
@@ -229,10 +194,14 @@ csd.list <- list()
 
 # load data
 anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData")
+
 # filter out samples where best=2nd best and calc diff.
 anno <- anno[which(
   anno$majorityNearestClass!=anno$majoritySecondBestClass),] %>% 
-  rowwise() %>% mutate(Diff = abs(get(paste("mean",majorityNearestClass,sep="")) - get(paste("mean",majoritySecondBestClass,sep=""))))
+  rowwise() %>% 
+  mutate(Diff = abs(
+    abs(get(paste("mean",majorityNearestClass,sep=""))) - abs(get(paste("mean",majoritySecondBestClass,sep="")))
+    ))
 
 for (i in 1:nrow(clinical.groups)) { 
   # select subgroup data
@@ -254,7 +223,7 @@ for (i in 1:nrow(clinical.groups)) {
       mutate(y_pos = min(pam50.data$Diff))
     
     # plot
-    csd.list <- append(csd.list,list(
+    plot.list <- append(plot.list,list(
       ggplot(pam50.data) + 
         geom_boxplot(aes(x=majoritySecondBestClass, y=Diff,fill=as.factor(majoritySecondBestClass)),alpha=0.7, size=1.5, outlier.size = 5) +
         xlab("majoritySecondBestClass") +
@@ -271,16 +240,6 @@ for (i in 1:nrow(clinical.groups)) {
         scale_fill_manual(values= c(LumA = "#2176d5", LumB = "#34c6eb", Her2 ="#d334eb", Basal ="#c41b0e", Normal="#64c25d"))))
   }
 }
-
-#plot
-pdf(file = paste(output.path,"PAM50_csd.pdf", sep=""),
-    onefile = TRUE, width = 21.0, height = 14.8)
-
-for (i in 1:length(csd.list)) {
-  print(csd.list[[i]])
-}
-
-dev.off()
 
 #######################################################################
 # SA for second best pam50 class - CHECK  
@@ -312,7 +271,7 @@ for (j in 1:length(pam50.subtypes)) {
     # fit
     fit <- survminer::surv_fit(data.surv~majoritySecondBestClass, data=pam50.data, conf.type="log-log")
     # plot
-    sa.list <- append(sa.list,list(
+    plot.list <- append(plot.list,list(
       KM.plot(pam50.data,fit,OM,
               colors = unname(colors[names(table(pam50.data$majoritySecondBestClass))]),
               title = paste(OM, " in ERpHER2nLNn_Endo_50; NCN_PAM50: ", pam50.type, sep=""),
@@ -323,30 +282,16 @@ for (j in 1:length(pam50.subtypes)) {
   #colors[grepl(paste(names(table(pam50.data$majoritySecondBestClass)), collapse = '|'),names(colors))],
 }
 
-#plot
-pdf(file = paste(output.path,"PAM50_sa.pdf", sep=""),
-    onefile = TRUE, width = 21.0, height = 14.8)
+# print to pdf
+pdf(file = paste(output.path,"PAM50_analyses.pdf", sep=""),
+   onefile = TRUE, width = 21.0, height = 14.8)
 
-for (i in 1:length(sa.list)) {
-  print(sa.list[[i]])
+for (i in 1:length(plot.list)) {
+  print(plot.list[[i]])
 }
 
-dev.off()
 
-#plot # format gets messed up like this, dont know why
-# pdf(file = paste(output.path,"PAM50_analyses.pdf", sep=""), 
-#    onefile = TRUE, width = 21.0, height = 14.8) 
-# 
-# plot.list <- list(sa.list,csd.list,d.list,ct.list,pc.list)
-#  
-# for (i in 1:length(plot.list)) {
-#   list <- plot.list[[i]]
-#   for (j in 1:length(list)) {
-#     print(list[[j]]) 
-#   }
-# }
-#  
-# dev.off()
+dev.off()
 
 
 #######################################################################
@@ -368,90 +313,3 @@ dev.off()
 # KM plot: LumB-Normal (distinct); LumB-Normal (non-distinct); LumB-LumA (distinct); LumB-LumA (non-distinct)
 
 # Boxplots: Age; Tum Size (with these groups)
-
-
-
-
-
-
-#######################################################################
-# plot correlations
-#######################################################################
-# 
-# # all samples
-# plot.list <- append(plot.list,list(
-#     ggplot(data_mod) + 
-#     geom_point(aes(x=meanHer2, y=HER2Diff,color=as.factor(majoritySecondBest)),alpha=0.7, size=5) +
-#     xlab("HER2E correlation (mean)") +
-#     ylab("Correlation diff (1st-2nd)") +
-#     ggtitle("HER2E distinctiveness: Subtype centroid correlations (ERpHER2nHER2E)") +
-#     theme(plot.title = element_text(size = 20),
-#           axis.text.x = element_text(size = 20),
-#           axis.title.x = element_text(size = 25),
-#           axis.text.y = element_text(size = 20),
-#           axis.title.y = element_text(size = 25),
-#           legend.position = c(0.9,0.1),
-#           legend.text=element_text(size = 15),
-#           legend.title=element_text(size = 20)) +
-#     scale_color_manual("2nd Subtype",values=c(LumA = "#2176d5", LumB = "#34c6eb", Basal ="#c41b0e")) +
-#     scale_x_continuous(breaks=seq(0, 0.8, 0.1))))
-# 
-# # correlation between subtype and her2 centroid correlations
-# # luma
-# data_mod <- data %>% filter(majoritySecondBest == "LumA")
-# 
-# plot.list <- append(plot.list,list(
-#     ggplot(data_mod) + 
-#     geom_point(aes(x=meanHer2, y=meanLumA,color=as.factor(majoritySecondBest)),alpha=0.7, size=5) +
-#     xlab("HER2E correlation") +
-#     ylab("LumA correlation") +
-#     ggtitle("ERpHER2nHER2E: Luminal A and HER2E centroid correlations") +
-#     theme(plot.title = element_text(size = 20),
-#           axis.text.x = element_text(size = 20),
-#           axis.title.x = element_text(size = 25),
-#           axis.text.y = element_text(size = 20),
-#           axis.title.y = element_text(size = 25),
-#           legend.position = "none") +
-#     scale_color_manual("Subtype",values=c(LumA = "#2176d5", LumB = "#34c6eb", Basal ="#c41b0e")) +
-#     scale_x_continuous(limits = c(0.2, 0.8),breaks=seq(0, 0.8, 0.1)) +
-#     scale_y_continuous(limits = c(0,0.6),breaks=seq(0, 0.6, 0.1))))
-# 
-# # lumb
-# data_mod <- data %>% filter(majoritySecondBest == "LumB")
-# 
-# plot.list <- append(plot.list,list(
-#     ggplot(data_mod) + 
-#     geom_point(aes(x=meanHer2, y=meanLumB,color=as.factor(majoritySecondBest)),alpha=0.7, size=5) +
-#     xlab("HER2E correlation") +
-#     ylab("LumB correlation") +
-#     ggtitle("ERpHER2nHER2E: Luminal B and HER2E centroid correlations") +
-#     theme(plot.title = element_text(size = 20),
-#           axis.text.x = element_text(size = 20),
-#           axis.title.x = element_text(size = 25),
-#           axis.text.y = element_text(size = 20),
-#           axis.title.y = element_text(size = 25),
-#           legend.position = "none") +
-#     scale_color_manual("Subtype",values=c(LumA = "#2176d5", LumB = "#34c6eb", Basal ="#c41b0e")) +
-#     scale_x_continuous(limits = c(0.2, 0.8),breaks=seq(0, 0.8, 0.1)) +
-#     scale_y_continuous(limits = c(0,0.6),breaks=seq(0, 0.6, 0.1))))
-# 
-# # basal
-# data_mod <- data %>% filter(majoritySecondBest == "Basal")
-# 
-# plot.list <- append(plot.list,list(
-#     ggplot(data_mod) + 
-#     geom_point(aes(x=meanHer2, y=meanBasal,color=as.factor(majoritySecondBest)),alpha=0.7, size=5) +
-#     xlab("HER2E correlation") +
-#     ylab("Basal correlation") +
-#     ggtitle("ERpHER2nHER2E: Basal and HER2E centroid correlations") +
-#     theme(plot.title = element_text(size = 20),
-#           axis.text.x = element_text(size = 20),
-#           axis.title.x = element_text(size = 25),
-#           axis.text.y = element_text(size = 20),
-#           axis.title.y = element_text(size = 25),
-#           legend.position = "none") +
-#     scale_color_manual("Subtype",values=c(LumA = "#2176d5", LumB = "#34c6eb", Basal ="#c41b0e")) +
-#     scale_x_continuous(limits = c(0.2, 0.8),breaks=seq(0, 0.8, 0.1)) +
-#     scale_y_continuous(limits = c(0,0.6),breaks=seq(0, 0.6, 0.1))))
-
-
