@@ -295,14 +295,43 @@ dev.off()
 
 
 #######################################################################
-# SA for disctinctiveness in LumA and LumB
+# SA for distinctiveness in LumA and LumB
 #######################################################################
+
+# load data
+anno <- loadRData("./data/SCANB/1_clinical/raw/SampleSet_WhoAmI_PAM50_n6233_Rel4_with_PAM50correlations_NoUnclassified.RData") %>% 
+  filter(EvalGroup_ERpHER2nLNn50 == "ERpHER2nLNn_Endo_50") %>% 
+  filter(majorityNearestClass != majoritySecondBestClass) %>% 
+  rowwise() %>% 
+  mutate(Diff = abs(
+    abs(get(paste("mean",majorityNearestClass,sep=""))) - abs(get(paste("mean",majoritySecondBestClass,sep="")))
+  ))
 
 # see what is worth creating a function for
 
 # distinctiveness based on median distinctiveness in these subgroups (e.g. LumA-Normal -> split based on median)
 
 # LumA
+# get subgroup data and define distinct/non-distinct groups
+
+median.LumA.LumB <- median(
+  anno[which(anno$majorityNearestClass =="LumA" &
+               anno$majoritySecondBestClass=="LumB"),]$Diff)
+
+median.LumA.Normal <- median(
+  anno[which(anno$majorityNearestClass =="LumA" &
+               anno$majoritySecondBestClass=="Normal"),]$Diff)
+
+luma.data <- anno %>% 
+  filter(majorityNearestClass == "LumA") %>% 
+  filter(majoritySecondBestClass %in% c("LumB","Normal")) %>% 
+  mutate(Group = case_when(
+    majoritySecondBestClass=="LumB" & Diff >= median.LumA.LumB ~ "LumB-Distinct",
+    majoritySecondBestClass=="LumB" & Diff <= median.LumA.LumB ~ "LumB-NonDistinct",
+    majoritySecondBestClass=="Normal" & Diff >= median.LumA.Normal ~ "Normal-Distinct",
+    majoritySecondBestClass=="Normal" & Diff <= median.LumA.Normal ~ "Normal-NonDistinct"
+                           ))
+
 
 # KM plot: LumA-Normal (distinct); LumA-Normal (non-distinct); LumA-LumB (distinct); LumA-LumB (non-distinct)
 
