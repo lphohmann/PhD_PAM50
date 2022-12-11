@@ -16,12 +16,17 @@ KM.plot <- function(data,fit,OM,colors,title,group.variable,legend.labels) { #
   legend.labs = if(length(legend.labels)==2) {
     c(paste(legend.labels[1]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[1],")",sep = ""),
       paste(legend.labels[2]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[2],")",sep = ""))
-  } else {
+  } else if(length(legend.labels)==3) {
     c(paste(legend.labels[1]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[1],")",sep = ""),
    paste(legend.labels[2]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[2],")",sep = ""),
    paste(legend.labels[3]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[3],")",sep = ""))
+  } else if(length(legend.labels)==4) {
+    c(paste(legend.labels[1]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[1],")",sep = ""),
+      paste(legend.labels[2]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[2],")",sep = ""),
+      paste(legend.labels[3]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[3],")",sep = ""),
+      paste(legend.labels[4]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[4],")",sep = ""))
 }
-  
+
   plot <- ggsurvplot(
     fit,
     censor.size = 8,
@@ -38,7 +43,7 @@ KM.plot <- function(data,fit,OM,colors,title,group.variable,legend.labels) { #
     ylim = c(0,1),
     color = "strata",
     palette = colors, 
-    legend = c(0.8,0.1),
+    legend = c(0.8,0.2),
     ggtheme = theme(legend.title = element_text(size=25), #20
                     legend.key.size = unit(0.5,"cm"), 
                     legend.text = element_text(size = 25), #20
