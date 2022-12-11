@@ -328,8 +328,9 @@ for (k in 1:length(outcome.measures)) {
             colors = c("#2b8cbe","#7bccc4","#238443","#78c679"),
             title = paste(OM, " in Luminal A 2nd-best/distinctiveness subgroups (ERpHER2nLNn_Endo_50_LumA)", sep=""),
             group.variable = "Group",
-            legend.labels = names(table(luma.data$Group))
-    ))) 
+            legend.labels = names(table(luma.data$Group)),
+            legend.title = "Subgroups")
+    )) 
 }
 
 # Boxplots: Age; Tum Size (with these groups)
@@ -407,8 +408,9 @@ for (k in 1:length(outcome.measures)) {
             colors = c("#ae017e","#f768a1","#225ea8","#41b6c4"), 
             title = paste(OM, " in Luminal B 2nd-best/distinctiveness subgroups (ERpHER2nLNn_Endo_50_LumB)", sep=""),
             group.variable = "Group",
-            legend.labels = names(table(lumb.data$Group))
-    ))) 
+            legend.labels = names(table(lumb.data$Group)),
+            legend.title = "Subgroups")
+    )) 
 }
 
 # Boxplots: Age; Tum Size (with these groups)

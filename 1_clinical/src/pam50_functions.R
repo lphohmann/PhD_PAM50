@@ -11,7 +11,7 @@ loadRData <- function(file.path){
 
 # simple KM plot function
 # function that creates KM plot for specified OM (2 or 3 lines)
-KM.plot <- function(data,fit,OM,colors,title,group.variable,legend.labels) { #
+KM.plot <- function(data,fit,OM,colors,title,group.variable,legend.labels,legend.title = "majoritySecondBestClass") { #
   
   legend.labs = if(length(legend.labels)==2) {
     c(paste(legend.labels[1]," (",table(data[!is.na(data[[OM]]),][[group.variable]])[1],")",sep = ""),
@@ -53,7 +53,7 @@ KM.plot <- function(data,fit,OM,colors,title,group.variable,legend.labels) { #
                     axis.title.y = element_text(size = 30),
                     plot.title = element_text(size=30)),
     title = title,
-    legend.title = "majoritySecondBestClass",
+    legend.title = legend.title,
     # HERE HOW TO HANDLE DIFFERENT NUMBERS OF LABELS
     legend.labs = legend.labs,
     break.x.by = 1, # break X axis in time intervals of x (what is nicest here? maybe 365)
